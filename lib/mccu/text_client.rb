@@ -1,3 +1,5 @@
+require 'net/telnet'
+
 module Mccu
   class TextClient
     TIMEOUT = 3
