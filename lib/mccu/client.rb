@@ -18,10 +18,10 @@ module Mccu
       end
     end
 
-    def purge_matched(regex)
+    def purge_matched(pattern)
       matched_count = 0
       @conn[:text].each_all_key do |key|
-        if key =~ regex
+        if pattern === key
           matched_count += 1
           @conn[:binary].delete key
         end
@@ -29,10 +29,10 @@ module Mccu
       matched_count
     end
 
-    def list_matched(regex)
+    def list_matched(pattern)
       matched_keys = []
       @conn[:text].each_all_key do |key|
-        if key =~ regex
+        if pattern === key
           matched_keys << key
         end
       end
