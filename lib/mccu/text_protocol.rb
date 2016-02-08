@@ -1,7 +1,7 @@
 require 'net/telnet'
 
 module Mccu
-  class TextClient
+  class TextProtocol
     TIMEOUT = 3
 
     def initialize(host, port=11211)
