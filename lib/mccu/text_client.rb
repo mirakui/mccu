@@ -25,6 +25,15 @@ module Mccu
       cmd "set #{key} #{compress} #{expire} #{value.length}\n#{value}", match: /^STORED$/
     end
 
+    def each_slab(&block)
+      stats_items = cmd 'stats items'
+      stats_items.each_line do |line|
+        if m = /^STAT items:(?<slab>\d+):number \d+$/.match(line)
+          yield m['slab'].to_i
+        end
+      end
+    end
+
     def stats_items
       stats_items = cmd 'stats items'
       slabs = {}
@@ -36,6 +45,15 @@ module Mccu
         end
       end
       slabs
+    end
+
+    def each_key(slab, &block)
+      cachedump = cmd "stats cachedump #{slab} 0"
+      cachedump.each_line do |line|
+        if m = /^ITEM (?<key>.+) \[\d+ b; \d+ s\]$/.match(line)
+          yield m['key']
+        end
+      end
     end
 
     def stats_cachedump(slab)
