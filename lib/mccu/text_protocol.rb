@@ -13,6 +13,10 @@ module Mccu
       @telnet ||= Net::Telnet.new 'Host' => @host, 'Port' => @port
     end
 
+    def close
+      @telnet.close if @telnet
+    end
+
     def cmd(str, match:/^(END|ERROR|OK)/)
       result = ''
       telnet.cmd('String' => str, 'Match' => match, 'Timeout' => TIMEOUT) {|c| result += c }
@@ -53,6 +57,12 @@ module Mccu
         if m = /^ITEM (?<key>.+) \[\d+ b; \d+ s\]$/.match(line)
           yield m['key']
         end
+      end
+    end
+
+    def each_all_key(&block)
+      each_slab do |slab|
+        each_key slab, &block
       end
     end
 
