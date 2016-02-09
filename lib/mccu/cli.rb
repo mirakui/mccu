@@ -28,30 +28,39 @@ module Mccu
     desc 'list', 'list keys'
     option :prefix, type: :string
     option :regex, type: :string
-    def list_keys
+    def list
       connect do |client|
         pattern = make_pattern
         if pattern
           client.each_matched_key(pattern) do |key|
-            puts key
+            puts key[:key]
           end
         else
           client.each_all_key do |key|
-            puts key
+            puts key[:key]
           end
         end
       end
     end
 
     desc 'stats', 'show stats'
-    def stats(op)
+    def stats(op=nil)
       connect do |client|
-        case op
-        when 'cachedump'
-          puts client.stats_cachedump.to_json
-        else
-          abort "unknown stats operator: #{op}"
-        end
+        stats = case op
+                when 'cachedump'
+                  client.stats_cachedump
+                when 'settings'
+                  client.stats_settings
+                when 'items'
+                  client.stats_items
+                when 'slabs'
+                  client.stats_slabs
+                when nil
+                  client.stats
+                else
+                  abort "unknown stats operator: #{op}"
+                end
+        puts stats.to_json
       end
     end
 

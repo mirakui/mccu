@@ -44,24 +44,54 @@ module Mccu
       matched_keys
     end
 
-    def stats_cachedump
-      stats = {}
-      @conn[:text].each_slab do |slab|
-        stats.merge! @conn[:text].stats_cachedump(slab)
-      end
-      stats
-    end
-
     def each_matched_key(pattern, &block)
-      each_all_key do |key|
-        if pattern === key
-          yield key
+      each_all_key do |item|
+        if pattern === item[:key]
+          yield item
         end
       end
     end
 
     def each_all_key(&block)
-      @conn[:text].each_all_key &block
+      flushed_at = start_time + oldest_live
+      @conn[:text].each_all_key do |item|
+        if item[:exptime] > flushed_at
+          yield item
+        end
+      end
+    end
+
+    def stats_cachedump
+      stats = {}
+      @conn[:text].each_slab do |slab|
+        stats[slab] = @conn[:text].stats_cachedump(slab)
+      end
+      stats
+    end
+
+    def stats_settings
+      @conn[:binary].stats(:settings).values.first
+    end
+
+    def stats_items
+      @conn[:binary].stats(:items).values.first
+    end
+
+    def stats_slabs
+      @conn[:binary].stats(:slabs).values.first
+    end
+
+    def stats
+      @conn[:binary].stats.values.first
+    end
+
+    def start_time
+      _stats = stats
+      _stats['time'].to_i - _stats['uptime'].to_i
+    end
+
+    def oldest_live
+      stats_settings['oldest'].to_i
     end
   end
 end

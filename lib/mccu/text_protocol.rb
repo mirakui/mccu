@@ -54,8 +54,10 @@ module Mccu
     def each_key(slab, &block)
       cachedump = cmd "stats cachedump #{slab} 0"
       cachedump.each_line do |line|
-        if m = /^ITEM (?<key>.+) \[\d+ b; \d+ s\]$/.match(line)
-          yield m['key']
+        if m = /^ITEM (?<key>.+) \[(?<bytes>\d+) b; (?<exptime>\d+) s\]$/.match(line)
+          key, bytes, time = m['key'], m['bytes'].to_i, m['exptime'].to_i
+          item = { key: key, byets: bytes, exptime: time }
+          yield item
         end
       end
     end

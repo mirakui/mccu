@@ -19,6 +19,10 @@ module Mccu
       client.flush_all
     end
 
+    def stats(*args)
+      client.stats(*args)
+    end
+
     def close
       @client.close if @client
     end
