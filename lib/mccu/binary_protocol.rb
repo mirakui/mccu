@@ -15,6 +15,10 @@ module Mccu
       client.delete key
     end
 
+    def flush_all
+      client.flush_all
+    end
+
     def close
       @client.close if @client
     end

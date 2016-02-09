@@ -1,5 +1,6 @@
 require 'thor'
 require 'mccu/client'
+require 'json'
 
 module Mccu
   class Cli < Thor
@@ -7,23 +8,49 @@ module Mccu
     option :key, type: :string
     option :prefix, type: :string
     option :regex, type: :string
+    option :all, type: :boolean
     def purge
-      pattern = make_pattern
       connect do |client|
-        count = client.purge_matched pattern
-        puts "purged #{count} items"
+        if options[:all]
+          client.purge_all
+          puts "purged all items"
+        elsif options[:key]
+          count = client.purge options[:key]
+          puts "purged #{count} items"
+        else
+          pattern = make_pattern
+          count = client.purge_matched pattern
+          puts "purged #{count} items"
+        end
       end
     end
 
     desc 'list', 'list keys'
-    option :key, type: :string
     option :prefix, type: :string
     option :regex, type: :string
     def list_keys
-      pattern = make_pattern
       connect do |client|
-        client.list_matched(pattern).each do |key|
-          puts key
+        pattern = make_pattern
+        if pattern
+          client.each_matched_key(pattern) do |key|
+            puts key
+          end
+        else
+          client.each_all_key do |key|
+            puts key
+          end
+        end
+      end
+    end
+
+    desc 'stats', 'show stats'
+    def stats(op)
+      connect do |client|
+        case op
+        when 'cachedump'
+          puts client.stats_cachedump.to_json
+        else
+          abort "unknown stats operator: #{op}"
         end
       end
     end
@@ -39,12 +66,10 @@ module Mccu
       end
 
       def make_pattern
-        if options[:key]
-          options[:key]
+        if options[:prefix]
+          Regexp.new "^#{Regexp.escape options[:prefix]}"
         elsif options[:regex]
-          Regexp.new "^#{options[:regex]}"
-        elsif options[:prefix]
-          Regexp.new options[:prefix]
+          Regexp.new options[:regex]
         end
       end
     end
