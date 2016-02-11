@@ -1,3 +1,4 @@
+require 'mccu'
 require 'dalli'
 
 module Mccu
@@ -8,7 +9,13 @@ module Mccu
     end
 
     def client
-      @client ||= Dalli::Client.new("#{@host}:#{@port}")
+      @client ||= begin
+                    c = Dalli::Client.new("#{@host}:#{@port}")
+                    c.alive!
+                    c
+                  rescue Dalli::RingError
+                    raise Mccu::ConnectionError, "Cannot connect to #{@host}:#{@port}"
+                  end
     end
 
     def delete(key)

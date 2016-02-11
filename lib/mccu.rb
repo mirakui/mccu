@@ -1,5 +1,5 @@
 require "mccu/version"
 
 module Mccu
-  # Your code goes here...
+  class ConnectionError < StandardError; end
 end
