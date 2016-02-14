@@ -18,6 +18,15 @@ module Mccu
       end
     end
 
+    # for testing
+    def set(key, value)
+      @conn[:binary].set key, value
+    end
+
+    def get(key)
+      @conn[:binary].get key
+    end
+
     def purge(key)
       result = @conn[:binary].delete key
       result ? 1 : 0
@@ -31,17 +40,9 @@ module Mccu
       matched_count = 0
       each_matched_key(pattern) do |key|
         matched_count += 1
-        @conn[:binary].delete key
+        @conn[:binary].delete key[:key]
       end
       matched_count
-    end
-
-    def list_matched(pattern)
-      matched_keys = []
-      each_matched_key(pattern) do |key|
-        matched_keys << key
-      end
-      matched_keys
     end
 
     def each_matched_key(pattern, &block)
@@ -55,7 +56,8 @@ module Mccu
     def each_all_key(&block)
       flushed_at = start_time + oldest_live
       @conn[:text].each_all_key do |item|
-        if item[:exptime] > flushed_at
+        #puts "#{item} #{Time.at(item[:exptime])} > #{Time.at(flushed_at)}"
+        if item[:exptime] < start_time || item[:exptime] > flushed_at
           yield item
         end
       end
@@ -86,8 +88,10 @@ module Mccu
     end
 
     def start_time
-      _stats = stats
-      _stats['time'].to_i - _stats['uptime'].to_i
+      @start_time ||= begin
+                        _stats = stats
+                        _stats['time'].to_i - _stats['uptime'].to_i
+                      end
     end
 
     def oldest_live

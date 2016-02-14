@@ -33,5 +33,13 @@ module Mccu
     def close
       @client.close if @client
     end
+
+    def set(key, value, *args)
+      client.set key, value, 0, *args
+    end
+
+    def get(key, *args)
+      client.get key, *args
+    end
   end
 end

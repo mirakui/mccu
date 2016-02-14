@@ -16,16 +16,16 @@ describe Mccu::Cli do
   describe 'list' do
     let(:opts) { %w[list] }
 
-    it { is_expected.to output('').to_stdout }
+    it { expect { subject }.to output(/grape/).to_stdout }
 
     describe '--prefix' do
       let(:opts) { %w[list --prefix=ba] }
-      it { is_expected.to output('yellow').to_stdout }
+      it { expect { subject }.to output(/banana/).to_stdout }
     end
 
     describe '--regex' do
       let(:opts) { %w[list --regex=.*ape$] }
-      it { is_expected.to output('grape').to_stdout }
+      it { expect { subject }.to output(/grape/).to_stdout }
     end
   end
 end
